@@ -1,0 +1,88 @@
+services:
+  api: &main_app
+    build:
+      context: .
+      target: dev
+      dockerfile: ./Dockerfile
+    image: finance_manager:${FINANCE_MANAGER_VERSION:-latest}
+    restart: always
+    ports:
+      # Exposes application port.
+    - "8000:8000"
+    env_file:
+      - path: .env
+        required: false
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      migrator:
+        condition: service_completed_successfully
+    # Local dev only: run plain uvicorn with --reload instead of the
+    # Dockerfile's default CMD (gunicorn workers don't support reload).
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    environment:
+      FINANCE_MANAGER_DB_HOST: finance_manager-db
+      FINANCE_MANAGER_DB_PORT: 5432
+      FINANCE_MANAGER_DB_USER: finance_manager
+      FINANCE_MANAGER_DB_PASS: finance_manager
+      FINANCE_MANAGER_DB_BASE: finance_manager
+      FINANCE_MANAGER_REDIS_HOST: finance_manager-redis
+    volumes:
+      - .:/app/src/
+
+  taskiq-worker:
+    <<: *main_app
+    labels: []
+    command:
+      - taskiq
+      - worker
+      - app.tasks.broker:broker
+      - --reload
+
+  db:
+    image: postgres:18.3-trixie
+    hostname: finance_manager-db
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_PASSWORD: "finance_manager"
+      POSTGRES_USER: "finance_manager"
+      POSTGRES_DB: "finance_manager"
+    volumes:
+      - finance_manager-db-data:/var/lib/postgresql
+    restart: always
+    healthcheck:
+      test: pg_isready -U finance_manager
+      interval: 2s
+      timeout: 3s
+      retries: 40
+
+  migrator:
+    <<: *main_app
+    restart: "no"
+    command: alembic upgrade head
+    depends_on:
+      db:
+        condition: service_healthy
+
+  redis:
+    image: redis:8.4.0
+    hostname: "finance_manager-redis"
+    restart: always
+    ports:
+      - 6379:6379
+    environment:
+      ALLOW_EMPTY_PASSWORD: "yes"
+    healthcheck:
+      test: redis-cli ping
+      interval: 1s
+      timeout: 3s
+      retries: 50
+
+
+
+volumes:
+  finance_manager-db-data:
+    name: finance_manager-db-data
