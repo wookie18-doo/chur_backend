@@ -15,10 +15,11 @@ from typing import Any
 
 from starlette.requests import Request
 
+from app.api.dependencies.users import get_email_sender
 from app.config.settings import settings
-from app.dal.user_query import UserQuery
 from app.db.sql.models.users import User
 from app.services.auth_service import InvalidTokenError, decode_token
+from app.services.user_service import UserService
 
 
 class RequestUser:
@@ -107,7 +108,7 @@ class RequestUserAuth:
             return RequestUser(None)
         session_factory = request.app.state.db_session_factory
         async with session_factory() as session:
-            user = await UserQuery(session).get_by_id(user_id)
+            user = await UserService(session, get_email_sender()).get_by_id(user_id)
         return RequestUser(user)
 
     async def auth(self, request: Request) -> RequestUser:

@@ -1,10 +1,15 @@
 import uuid
 from datetime import UTC, datetime, timedelta
+from typing import Any
 
+from sqlalchemy.exc import IntegrityError
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from app.config.settings import settings
+from app.dal.family_member_query import FamilyMemberQuery
+from app.dal.family_query import FamilyQuery
 from app.dal.user_query import UserQuery
+from app.db.sql.models.enums import FamilyRole
 from app.db.sql.models.users import User
 from app.services.auth_service import (
     InvalidTokenError,
@@ -25,6 +30,14 @@ class InvalidOtpError(Exception):
     """Raised when an OTP code is missing, expired, or doesn't match."""
 
 
+class UserNotFoundError(Exception):
+    """Raised when no user matches the given lookup (e.g. by email)."""
+
+
+class UserConflictError(Exception):
+    """Raised when a profile update clashes with another user's phone/username."""
+
+
 class UserService:
     """
     Business logic for registration, authentication, and account recovery.
@@ -39,6 +52,8 @@ class UserService:
 
     def __init__(self, session: AsyncSession, email_sender: EmailSender) -> None:
         self.dao = UserQuery(session)
+        self.family_member_dao = FamilyMemberQuery(session)
+        self.family_dao = FamilyQuery(session)
         self.email_sender = email_sender
 
     async def get_by_id(self, user_id: uuid.UUID) -> User | None:
@@ -50,6 +65,52 @@ class UserService:
         """
         return await self.dao.get_by_id(user_id)
 
+    async def update_profile(self, user: User, **fields: Any) -> User:
+        """
+        Update a user's profile fields.
+
+        :param user: the user to update.
+        :param fields: ``phone``/``username``/``first_name``/``last_name``
+            values to set; ``None`` clears a field.
+        :raises UserConflictError: if the phone or username is taken.
+        :return: the updated user.
+        """
+        try:
+            updated = await self.dao.update(user.id, **fields)
+        except IntegrityError as exc:
+            # A failed flush leaves the transaction aborted until rolled back.
+            await self.dao.session.rollback()
+            raise UserConflictError from exc
+        assert updated is not None  # noqa: S101
+        return updated
+
+    async def delete_account(self, user: User) -> None:
+        """
+        Permanently delete a user and all of their data.
+
+        If the user is in a family, the family is dissolved when they were
+        its last member, and ownership passes to another member when they
+        were its owner.
+
+        :param user: the user to delete.
+        """
+        user_id = user.id
+        membership = await self.family_member_dao.get_by_user(user_id)
+        if membership is not None:
+            others = [
+                m
+                for m in await self.family_member_dao.list_members(membership.family_id)
+                if m.user_id != user_id
+            ]
+            if not others:
+                await self.family_member_dao.delete(user_id)
+                await self.family_dao.delete(membership.family_id)
+            elif membership.role == FamilyRole.OWNER:
+                await self.family_member_dao.update(
+                    others[0].user_id, role=FamilyRole.OWNER
+                )
+        await self.dao.delete_with_data(user_id)
+
     async def register(
         self,
         email: str,
@@ -59,6 +120,8 @@ class UserService:
         username: str | None = None,
         first_name: str | None = None,
         last_name: str | None = None,
+        is_superuser: bool = False,
+        is_verified: bool = False,
     ) -> User:
         """
         Create a new user and kick off email verification.
@@ -69,6 +132,12 @@ class UserService:
         :param username: user handle.
         :param first_name: user first name.
         :param last_name: user last name.
+        :param is_superuser: grant superuser rights immediately -- never
+            settable through self-service registration, only by trusted
+            callers (the admin CLI's ``create-user``).
+        :param is_verified: mark the account verified immediately instead
+            of sending a verification email -- for the same trusted-
+            caller case, where there's no inbox to prove ownership of.
         :return: the created user.
         """
         user = await self.dao.create(
@@ -76,19 +145,20 @@ class UserService:
             email=email,
             hashed_password=hash_secret(password),
             is_active=True,
-            is_superuser=False,
-            is_verified=False,
+            is_superuser=is_superuser,
+            is_verified=is_verified,
             phone=phone,
             username=username,
             first_name=first_name,
             last_name=last_name,
         )
-        token = create_token(
-            user.id, "verify", settings.users_verification_token_lifetime_seconds
-        )
-        await self.email_sender.send(
-            EmailReason.VERIFY_EMAIL, user.email, {"token": token}
-        )
+        if not is_verified:
+            token = create_token(
+                user.id, "verify", settings.users_verification_token_lifetime_seconds
+            )
+            await self.email_sender.send(
+                EmailReason.VERIFY_EMAIL, user.email, {"token": token}
+            )
         return user
 
     async def authenticate(self, email: str, password: str) -> User:
@@ -152,6 +222,26 @@ class UserService:
         if user is None:
             raise InvalidTokenError
         await self.dao.update_password(user, hash_secret(new_password))
+
+    async def set_password(self, email: str, new_password: str) -> User:
+        """
+        Set a user's password directly, without a reset token.
+
+        For trusted callers only (the admin CLI's ``refresh-password``) --
+        unlike :meth:`reset_password`, this doesn't check that the caller
+        proved ownership of the account via a token sent to its inbox, so
+        it must never be reachable from the API.
+
+        :param email: email of the user to update.
+        :param new_password: new plaintext password to hash and store.
+        :raises UserNotFoundError: if no user matches ``email``.
+        :return: the updated user.
+        """
+        user = await self.dao.get_by_email(email)
+        if user is None:
+            raise UserNotFoundError
+        await self.dao.update_password(user, hash_secret(new_password))
+        return user
 
     async def verify_email(self, token: str) -> None:
         """

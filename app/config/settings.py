@@ -1,13 +1,9 @@
 import enum
 import os
 from functools import lru_cache
-from pathlib import Path
-from tempfile import gettempdir
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from yarl import URL
-
-TEMP_DIR = Path(gettempdir())
 
 
 class LogLevel(enum.StrEnum):
@@ -38,7 +34,45 @@ class UsersSettings(BaseSettings):
     users_reset_password_token_lifetime_seconds: int = 60 * 60
     users_verification_token_lifetime_seconds: int = 60 * 60 * 24
     users_otp_lifetime_seconds: int = 60 * 5
-    users_cookie_name: str = "finance_manager_session"
+    users_cookie_name: str = "chur_session"
+
+
+class ImportsSettings(BaseSettings):
+    """Settings for the statement/bill import subsystem."""
+
+    imports_max_file_size_bytes: int = 5 * 1024 * 1024
+    # How long an upload may wait in redis for a worker before it expires.
+    imports_file_ttl_seconds: int = 60 * 60
+
+
+class OpenRouterSettings(BaseSettings):
+    """Settings for LLM-based statement parsing through OpenRouter."""
+
+    openrouter_api_key: str = ""
+    openrouter_base_url: str = "https://openrouter.ai/api/v1"
+    # Must accept images and PDFs as input.
+    openrouter_model: str = "google/gemini-2.5-flash"
+    openrouter_timeout_seconds: float = 180.0
+    # "pdf-text", "mistral-ocr" or "native"; empty lets OpenRouter choose.
+    openrouter_pdf_engine: str = ""
+    statement_parsing_max_files: int = 10
+    statement_parsing_cache_ttl_seconds: int = 60 * 60
+
+
+class StoreSettings(BaseSettings):
+    """Store links shown on the landing page; empty hides the button."""
+
+    app_store_url: str = ""
+    google_play_url: str = ""
+
+
+class ExchangeRateSettings(BaseSettings):
+    """Settings for the daily exchange-rate refresh."""
+
+    exchange_rate_api_key: str = ""
+    # exchangerate.host's free tier only supports USD as the source currency.
+    exchange_rate_base_currency: str = "USD"
+    exchange_rate_api_url: str = "https://api.exchangerate.host/live"
 
 
 class DatabaseSettings(BaseSettings):
@@ -46,9 +80,9 @@ class DatabaseSettings(BaseSettings):
 
     db_host: str = "localhost"
     db_port: int = 5432
-    db_user: str = "finance_manager"
-    db_pass: str = "finance_manager"  # noqa: S105
-    db_base: str = "finance_manager"
+    db_user: str = "chur"
+    db_pass: str = "chur"  # noqa: S105
+    db_base: str = "chur"
     db_echo: bool = False
 
     @property
@@ -102,6 +136,10 @@ class Settings(
     UsersSettings,
     DatabaseSettings,
     RedisSettings,
+    ImportsSettings,
+    OpenRouterSettings,
+    StoreSettings,
+    ExchangeRateSettings,
 ):
     """
     Application settings.
@@ -112,7 +150,7 @@ class Settings(
 
     model_config = SettingsConfigDict(
         env_file=".env",
-        env_prefix="FINANCE_MANAGER_",
+        env_prefix="CHUR_",
         env_file_encoding="utf-8",
     )
 

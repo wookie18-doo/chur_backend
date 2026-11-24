@@ -15,7 +15,11 @@ from a db session/connection -- swapping backends means swapping which
 import uuid
 from datetime import datetime
 
+from sqlalchemy import delete, or_
+from sqlalchemy.sql.ddl import sort_tables
+
 from app.dal.sql.user_dao import UserDAO
+from app.db.sql.base import Base
 from app.db.sql.models.users import User
 
 
@@ -89,3 +93,33 @@ class UserQuery(UserDAO):
         :param user: user to update.
         """
         await self.update(user.id, otp_hash=None, otp_expires_at=None)
+
+    async def delete_with_data(self, user_id: uuid.UUID) -> None:
+        """
+        Delete a user together with every row that references them.
+
+        Walks the tables in reverse dependency order, so rows pointing at
+        other user-owned rows go first. Child tables with no user column
+        of their own (e.g. spent items) rely on their ``ON DELETE CASCADE``.
+
+        :param user_id: user to delete.
+        """
+        user_table = User.__table__  # type: ignore[attr-defined]
+        # SET NULL FKs form cycles; the DB nulls them, so order can skip them.
+        ordered = sort_tables(
+            Base.metadata.tables.values(),
+            skip_fn=lambda fk: fk.ondelete == "SET NULL",
+        )
+        for table in reversed(ordered):
+            if table is user_table:
+                continue
+            columns = [
+                fk.parent for fk in table.foreign_keys if fk.column.table is user_table
+            ]
+            if columns:
+                await self.session.exec(
+                    delete(table).where(or_(*(c == user_id for c in columns)))
+                )
+        await self.session.exec(delete(user_table).where(user_table.c.id == user_id))
+        await self.session.flush()
+        self.session.expunge_all()

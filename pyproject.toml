@@ -1,47 +1,55 @@
 [project]
-name = "finance_manager"
+name = "chur"
 version = "0.1.0"
-requires-python = ">=3.12,<4.0"
+requires-python = ">=3.14,<4.0"
 description = ""
 authors = []
 maintainers = []
 readme = "README.md"
 dependencies = [
-  "fastapi >=0.122.0,<1",
-  "uvicorn[standard] >=0.38.0,<1",
-  "bcrypt >=4.2.0,<5",
-  "pyjwt >=2.10.0,<3",
-  "email-validator >=2.2.0,<3",
-  "pydantic >=2.12.5,<3",
-  "pydantic-settings >=2.12.0,<3",
-  "yarl >=1.22.0,<2",
-  "ujson >=5.11.0,<6",
-  "sqlmodel >=0.0.29,<1",
-  "alembic >=1.17.2,<2",
-  "asyncpg >=0.31.0,<1",
-  "redis[hiredis] >=6,<7",
-  "httptools >=0.7.1,<1",
-  "pymongo >=4.15.4,<5",
-  "prometheus-client >=0.23.1,<1",
-  "prometheus-fastapi-instrumentator >=7.1.0,<8",
-  "loguru >=0.7.3,<1",
-  "taskiq >=0.12.0,<1",
-  "taskiq-fastapi >=0.3.6,<1",
-  "taskiq-redis >=1.1.2,<2",
-  "pyzmq >=27.1.0,<28",
+  "fastapi >=0.122.0",
+  "uvicorn[standard] >=0.38.0",
+  "bcrypt >=4.2.0",
+  "pyjwt >=2.10.0",
+  "email-validator >=2.2.0",
+  "pydantic >=2.12.5",
+  "pydantic-settings >=2.12.0",
+  "yarl >=1.22.0",
+  "ujson >=5.11.0",
+  "sqlmodel >=0.0.29",
+  "greenlet >=3.2.0",
+  "alembic >=1.17.2",
+  "asyncpg >=0.31.0",
+  "psycopg[binary] >=3.2.0",
+  "redis[hiredis] >=6",
+  "httptools >=0.7.1",
+  "pymongo >=4.15.4",
+  "prometheus-client >=0.23.1",
+  "prometheus-fastapi-instrumentator >=7.1.0",
+  "loguru >=0.7.3",
+  "taskiq >=0.12.0",
+  "taskiq-fastapi >=0.3.6",
+  "taskiq-redis >=1.1.2",
+  "pyzmq >=27.1.0",
+  "python-multipart>=0.0.32",
+  "pdfplumber>=0.11.10",
+  "anyio >=4.11.0",
+  "click >=8.1.7",
+  "httpx >=0.28.1",
+  "pillow-heif>=1.8.1",
+  "pillow>=13.0.0",
 ]
 
 [dependency-groups]
 dev = [
-  "pytest >=9.0.1,<10",
-  "ruff >=0.14.6,<1",
-  "mypy >=1.19.0,<2",
-  "pre-commit >=4.5.0,<5",
-  "pytest-cov >=7.0.0,<8",
-  "anyio >=4.11.0,<5",
-  "pytest-env >=1.2.0,<2",
-  "httpx >=0.28.1,<1",
-  "taskiq[reload] >=0.12.0,<1",
+  "pytest >=9.0.1",
+  "ruff >=0.14.6",
+  "mypy >=1.19.0",
+  "pre-commit >=4.5.0",
+  "pytest-cov >=7.0.0",
+  "anyio >=4.11.0",
+  "pytest-env >=1.2.0",
+  "taskiq[reload] >=0.12.0",
 ]
 
 
@@ -54,7 +62,7 @@ multi_line_output = 3
 src_paths = ["app",]
 
 [tool.mypy]
-python_version = "3.13"
+python_version = "3.14"
 strict = true
 ignore_missing_imports = true
 allow_subclassing_any = true
@@ -84,8 +92,8 @@ filterwarnings = [
 ]
 anyio_mode = "auto"
 env = [
-    "FINANCE_MANAGER_ENVIRONMENT=pytest",
-    "FINANCE_MANAGER_DB_BASE=finance_manager_test",
+    "CHUR_ENVIRONMENT=pytest",
+    "CHUR_DB_BASE=chur_test",
 ]
 
 [tool.ruff]
@@ -134,11 +142,11 @@ lint.ignore = [
     "D106",    # Missing docstring in public nested class
     "UP043",   # Unnecessary default argument specified (conflicts with mypy).
 ]
+lint.mccabe = { max-complexity = 10 }
 exclude = [
     "app/db/sql/migrations",
     ".venv/"
 ]
-lint.mccabe = { max-complexity = 10 }
 line-length = 88
 
 [tool.ruff.lint.per-file-ignores]
@@ -164,7 +172,7 @@ extend-immutable-calls = [
 ]
 
 [fastapi-template.options]
-project_name = "finance_manager"
+project_name = "chur"
 api_type = "rest"
 enable_redis = "True"
 enable_rmq = "None"

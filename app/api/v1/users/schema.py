@@ -74,3 +74,12 @@ class VerifyOtpRequest(BaseModel):
 
     email: EmailStr
     code: str
+
+
+class UserUpdate(BaseModel):
+    """Represents a profile update; omitted fields stay unchanged."""
+
+    phone: str | None = None
+    username: str | None = None
+    first_name: str | None = None
+    last_name: str | None = None

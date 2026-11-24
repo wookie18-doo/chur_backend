@@ -1,1 +1,1 @@
-"""Tests for finance_manager."""
+"""Tests for chur."""

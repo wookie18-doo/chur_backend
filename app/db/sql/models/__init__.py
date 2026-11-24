@@ -1,4 +1,4 @@
-"""finance_manager models."""
+"""chur models."""
 
 import pkgutil
 from pathlib import Path

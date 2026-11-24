@@ -1,6 +1,9 @@
-# finance_manager
+# Chur
 
-This project was generated using ovinnik.
+A family finance manager backend.
+
+Settings are read from environment variables prefixed with `CHUR_`. See
+`plan.md` for the build plan.
 
 ## UV
 
@@ -72,16 +75,16 @@ This application can be configured with environment variables.
 You can create `.env` file in the root directory and place all
 environment variables here. 
 
-All environment variables should start with "FINANCE_MANAGER_" prefix.
+All environment variables should start with "CHUR_" prefix.
 
 For example if you see in your "app/config/settings.py" a variable named like
-`random_parameter`, you should provide the "FINANCE_MANAGER_RANDOM_PARAMETER" 
+`random_parameter`, you should provide the "CHUR_RANDOM_PARAMETER" 
 variable to configure the value. This behaviour can be changed by overriding `env_prefix` property
 in `app.config.settings.Settings.Config`.
 
 An example of .env file:
 ```bash
-FINANCE_MANAGER_ENVIRONMENT="dev"
+CHUR_ENVIRONMENT="dev"
 ```
 
 Host and port aren't application settings -- they're passed directly to

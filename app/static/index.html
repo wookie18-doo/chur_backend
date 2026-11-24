@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Chur — family finance app</title>
+<meta name="description" content="Chur is a family finance app: shared accounts, spending, incomes and wishlists in one calm place." />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23B0432B'/%3E%3C/svg%3E" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Young+Serif&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg: #F3EEE4;
+    --card: #FFFDF8;
+    --ink: #1E2621;
+    --muted: #5E655F;
+    --line: #E4DCCD;
+    --accent: #B0432B;
+    --accent-dark: #7C2A18;
+    --blue: #2B5A8A;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body { margin: 0; padding: 0; min-height: 100%; }
+
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Manrope', -apple-system, BlinkMacSystemFont, sans-serif;
+    display: flex;
+    justify-content: center;
+    padding: 60px 24px 48px;
+  }
+
+  main.card {
+    width: 100%;
+    max-width: 640px;
+    display: flex;
+    flex-direction: column;
+    
+  }
+
+  .logo {
+    width: 56px;
+    height: 56px;
+    border-radius: 16px;
+    background: var(--accent);
+    color: var(--card);
+    font-family: 'Young Serif', serif;
+    font-size: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 22px;
+  }
+
+  .eyebrow {
+    font-weight: 700;
+    font-size: 11px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin: 0 0 14px;
+    text-align: center;
+  }
+
+  h1 {
+    font-family: 'Young Serif', serif;
+    font-weight: 400;
+    font-size: 36px;
+    line-height: 1.2;
+    margin: 0 0 16px;
+    text-align: center;
+  }
+
+  h2 {
+    font-family: 'Young Serif', serif;
+    font-weight: 400;
+    font-size: 20px;
+    margin: 0 0 8px;
+  }
+
+  p { color: var(--muted); line-height: 1.65; }
+
+  p.body {
+    font-size: 15px;
+    max-width: 440px;
+    margin: 0 auto 36px;
+    text-align: center;
+  }
+
+  .tile {
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    background: var(--card);
+    padding: 22px 20px;
+  }
+
+  .tile p { font-size: 13.5px; line-height: 1.55; margin: 0; }
+
+  .label {
+    font-weight: 600;
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin: 0 0 10px;
+  }
+
+  a.btn {
+    display: inline-block;
+    border: 1px solid var(--accent);
+    background: var(--accent);
+    border-radius: 999px;
+    padding: 14px 28px;
+    font-weight: 600;
+    font-size: 14.5px;
+    color: var(--card);
+    text-decoration: none;
+    transition: opacity 0.15s ease;
+  }
+
+  a.btn:hover { opacity: 0.9; }
+
+  a.btn.secondary {
+    background: transparent;
+    border-color: var(--line);
+    color: var(--ink);
+  }
+
+  a.inline-link {
+    color: var(--blue);
+    text-decoration: none;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .footnote {
+    font-size: 12px;
+    color: var(--muted);
+    text-align: center;
+    margin: 0;
+  }
+
+  .features {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+    margin-bottom: 40px;
+  }
+
+  @media (max-width: 560px) { .features { grid-template-columns: 1fr; } }
+
+  .stores {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 36px;
+  }
+
+  nav.links {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 18px;
+    font-size: 13px;
+  }
+
+  nav.links a { color: var(--muted); text-decoration: none; }
+  nav.links a:hover { color: var(--ink); }
+</style>
+</head>
+<body>
+  <main class="card">
+    <div class="logo">C</div>
+
+    <p class="eyebrow">Chur</p>
+    <h1>Family finances, finally in one place.</h1>
+    <p class="body">
+      Track spending, plan incomes and share wishlists with the people you
+      live with. Chur keeps the household budget calm and clear.
+    </p>
+
+    <div class="features">
+      <div class="tile">
+        <h2>Shared budget</h2>
+        <p>Invite your family and see accounts, spending and incomes together.</p>
+      </div>
+      <div class="tile">
+        <h2>Clear reports</h2>
+        <p>Understand where the money goes with simple category breakdowns.</p>
+      </div>
+      <div class="tile">
+        <h2>Wishlists</h2>
+        <p>Plan purchases together and tick them off as you go.</p>
+      </div>
+    </div>
+
+    <div class="stores">
+      <a class="btn" href="{{APP_STORE_URL}}" style="{{APP_STORE_DISPLAY}}" target="_blank" rel="noopener">Download on the App Store</a>
+      <a class="btn secondary" href="{{GOOGLE_PLAY_URL}}" style="{{GOOGLE_PLAY_DISPLAY}}" target="_blank" rel="noopener">Get it on Google Play</a>
+    </div>
+
+    <nav class="links">
+      <a href="/support">Support</a>
+      <span>·</span>
+      <a href="/privacy_policy">Privacy Policy</a>
+    </nav>
+  </main>
+</body>
+</html>

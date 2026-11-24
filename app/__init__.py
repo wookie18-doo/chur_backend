@@ -1,1 +1,1 @@
-"""finance_manager package."""
+"""chur package."""

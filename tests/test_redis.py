@@ -24,6 +24,7 @@ async def test_setting_value(
 
     async with Redis(connection_pool=test_redis_client.pool) as redis:
         actual_value = await redis.get(test_key)
+    assert isinstance(actual_value, bytes)
     assert actual_value.decode() == test_val
 
 

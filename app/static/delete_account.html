@@ -1,0 +1,281 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Delete account · Chur</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23B0432B'/%3E%3C/svg%3E" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Young+Serif&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg: #F3EEE4;
+    --card: #FFFDF8;
+    --ink: #1E2621;
+    --muted: #5E655F;
+    --line: #E4DCCD;
+    --accent: #B0432B;
+    --accent-dark: #7C2A18;
+    --blue: #2B5A8A;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body { margin: 0; padding: 0; min-height: 100%; }
+
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Manrope', -apple-system, BlinkMacSystemFont, sans-serif;
+    display: flex;
+    justify-content: center;
+    padding: 60px 24px 48px;
+  }
+
+  main.card {
+    width: 100%;
+    max-width: 440px;
+    display: flex;
+    flex-direction: column;
+    
+  }
+
+  .logo {
+    width: 56px;
+    height: 56px;
+    border-radius: 16px;
+    background: var(--accent);
+    color: var(--card);
+    font-family: 'Young Serif', serif;
+    font-size: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 22px;
+  }
+
+  .eyebrow {
+    font-weight: 700;
+    font-size: 11px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin: 0 0 14px;
+    text-align: center;
+  }
+
+  h1 {
+    font-family: 'Young Serif', serif;
+    font-weight: 400;
+    font-size: 36px;
+    line-height: 1.2;
+    margin: 0 0 16px;
+    text-align: center;
+  }
+
+  h2 {
+    font-family: 'Young Serif', serif;
+    font-weight: 400;
+    font-size: 20px;
+    margin: 0 0 8px;
+  }
+
+  p { color: var(--muted); line-height: 1.65; }
+
+  p.body {
+    font-size: 15px;
+    max-width: 440px;
+    margin: 0 auto 36px;
+    text-align: center;
+  }
+
+  .tile {
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    background: var(--card);
+    padding: 22px 20px;
+  }
+
+  .tile p { font-size: 13.5px; line-height: 1.55; margin: 0; }
+
+  .label {
+    font-weight: 600;
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin: 0 0 10px;
+  }
+
+  a.btn {
+    display: inline-block;
+    border: 1px solid var(--accent);
+    background: var(--accent);
+    border-radius: 999px;
+    padding: 14px 28px;
+    font-weight: 600;
+    font-size: 14.5px;
+    color: var(--card);
+    text-decoration: none;
+    transition: opacity 0.15s ease;
+  }
+
+  a.btn:hover { opacity: 0.9; }
+
+  a.btn.secondary {
+    background: transparent;
+    border-color: var(--line);
+    color: var(--ink);
+  }
+
+  a.inline-link {
+    color: var(--blue);
+    text-decoration: none;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .footnote {
+    font-size: 12px;
+    color: var(--muted);
+    text-align: center;
+    margin: 0;
+  }
+
+  .tile { text-align: center; margin-bottom: 22px; }
+
+  label { display: block; font-weight: 600; font-size: 13px; margin: 0 0 6px; text-align: left; }
+  input {
+    width: 100%; font: inherit; font-size: 15px; color: var(--ink);
+    background: var(--bg); border: 1px solid var(--line); border-radius: 12px;
+    padding: 12px 14px; margin: 0 0 16px;
+  }
+  input:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+  button.btn {
+    font: inherit; cursor: pointer; border: 1px solid var(--accent);
+    background: var(--accent); color: var(--card); border-radius: 999px;
+    padding: 14px 28px; font-weight: 600; font-size: 14.5px; width: 100%;
+  }
+  button.btn:disabled { opacity: 0.6; cursor: default; }
+  button.btn.secondary { background: transparent; border-color: var(--line); color: var(--ink); }
+  .error { color: var(--accent-dark); font-size: 13.5px; margin: 0 0 14px; min-height: 1em; }
+  .tile { text-align: left; margin-bottom: 22px; }
+  .tile.done { text-align: center; }
+  [hidden] { display: none !important; }
+  .overlay {
+    position: fixed; inset: 0; background: rgba(30, 38, 33, 0.55);
+    display: flex; align-items: center; justify-content: center; padding: 24px;
+  }
+  .modal {
+    background: var(--card); border-radius: 18px; padding: 26px 22px;
+    max-width: 400px; width: 100%;
+  }
+  .modal p { font-size: 14.5px; margin: 0 0 18px; }
+  .modal .actions { display: flex; flex-direction: column; gap: 10px; }
+
+</style>
+</head>
+<body>
+  <main class="card">
+    <div class="logo">C</div>
+
+    <p class="eyebrow">Chur</p>
+    <h1>Delete account</h1>
+    <p class="body">
+      Log in to the account you want to delete. You will be asked to confirm
+      before anything is removed.
+    </p>
+
+    <form class="tile" id="login-form">
+      <label for="email">Email</label>
+      <input id="email" type="email" autocomplete="username" required />
+      <label for="password">Password</label>
+      <input id="password" type="password" autocomplete="current-password" required />
+      <p class="error" id="login-error" role="alert"></p>
+      <button class="btn" type="submit" id="login-btn">Log in</button>
+    </form>
+
+    <div class="tile done" id="done" hidden>
+      <p class="label">Account deleted</p>
+      <p>Your account and all associated data have been deleted. If you have an active subscription, cancel it in your Apple ID or Google Play settings.</p>
+    </div>
+
+    <p class="footnote">Need help? <a class="inline-link" href="/support">Contact support</a></p>
+  </main>
+
+  <div class="overlay" id="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title" hidden>
+    <div class="modal">
+      <h2 id="modal-title">Delete your account?</h2>
+      <p>This permanently deletes <strong id="modal-email"></strong> and all of its data: accounts, transactions, categories and settings. This cannot be undone.</p>
+      <p class="error" id="delete-error" role="alert"></p>
+      <div class="actions">
+        <button class="btn" type="button" id="confirm-btn">Yes, delete my account</button>
+        <button class="btn secondary" type="button" id="cancel-btn">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+  const $ = (id) => document.getElementById(id);
+  const form = $('login-form');
+  const modal = $('modal');
+
+  async function detail(res, fallback) {
+    try { return (await res.json()).detail || fallback; } catch { return fallback; }
+  }
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = $('login-btn');
+    $('login-error').textContent = '';
+    btn.disabled = true;
+    try {
+      const res = await fetch('/api/v1/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: $('email').value.trim(), password: $('password').value }),
+      });
+      if (!res.ok) {
+        $('login-error').textContent = await detail(res, 'Login failed');
+        return;
+      }
+      $('modal-email').textContent = $('email').value.trim();
+      $('delete-error').textContent = '';
+      modal.hidden = false;
+    } catch {
+      $('login-error').textContent = 'Network error, please try again.';
+    } finally {
+      btn.disabled = false;
+    }
+  });
+
+  $('cancel-btn').addEventListener('click', async () => {
+    modal.hidden = true;
+    form.reset();
+    // Don't leave a live session behind in the browser.
+    try { await fetch('/api/v1/auth/logout', { method: 'POST' }); } catch {}
+  });
+
+  $('confirm-btn').addEventListener('click', async () => {
+    const btn = $('confirm-btn');
+    $('delete-error').textContent = '';
+    btn.disabled = true;
+    try {
+      const res = await fetch('/api/v1/users/me', { method: 'DELETE' });
+      if (!res.ok) {
+        $('delete-error').textContent = await detail(res, 'Could not delete the account');
+        return;
+      }
+      modal.hidden = true;
+      form.hidden = true;
+      form.reset();
+      $('done').hidden = false;
+    } catch {
+      $('delete-error').textContent = 'Network error, please try again.';
+    } finally {
+      btn.disabled = false;
+    }
+  });
+</script>
+</body>
+</html>

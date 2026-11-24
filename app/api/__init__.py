@@ -1,1 +1,1 @@
-"""finance_manager API package."""
+"""chur API package."""

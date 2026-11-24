@@ -13,6 +13,7 @@ from app.api.v1.users.schema import (
     TokenResponse,
     UserCreate,
     UserRead,
+    UserUpdate,
     VerifyEmailRequest,
     VerifyOtpRequest,
 )
@@ -22,6 +23,7 @@ from app.services.auth_service import InvalidTokenError
 from app.services.user_service import (
     InvalidCredentialsError,
     InvalidOtpError,
+    UserConflictError,
     UserService,
 )
 
@@ -48,7 +50,9 @@ def _issue_session(
         key=settings.users_cookie_name,
         value=token,
         httponly=True,
-        secure=settings.environment != "dev",
+        # "pytest" runs the app over plain http (see broker.py's own
+        # environment check) -- a Secure cookie would never come back.
+        secure=settings.environment.lower() not in ("dev", "pytest"),
         samesite="lax",
         max_age=settings.users_access_token_lifetime_seconds,
     )
@@ -238,3 +242,46 @@ async def read_current_user(user: RequestUser = Depends(require_auth)) -> User:
     """
     # require_auth already guarantees unwrap() isn't None here.
     return cast(User, user.unwrap())
+
+
+@router.patch("/users/me", response_model=UserRead, tags=["users"])
+async def update_current_user(
+    payload: UserUpdate,
+    user: RequestUser = Depends(require_auth),
+    user_service: UserService = Depends(get_user_service),
+) -> User:
+    """
+    Update the authenticated user's profile.
+
+    :param payload: fields to change; omitted ones stay as they are.
+    :param user: the authenticated user proxy.
+    :param user_service: user service.
+    :raises HTTPException: 409, if the phone or username is already taken.
+    :return: the updated user.
+    """
+    try:
+        return await user_service.update_profile(
+            cast(User, user.unwrap()), **payload.model_dump(exclude_unset=True)
+        )
+    except UserConflictError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Phone or username is already taken.",
+        ) from exc
+
+
+@router.delete("/users/me", status_code=status.HTTP_204_NO_CONTENT, tags=["users"])
+async def delete_current_user(
+    response: Response,
+    user: RequestUser = Depends(require_auth),
+    user_service: UserService = Depends(get_user_service),
+) -> None:
+    """
+    Permanently delete the authenticated user and all of their data.
+
+    :param response: current response, used to clear the auth cookie.
+    :param user: the authenticated user proxy.
+    :param user_service: user service.
+    """
+    await user_service.delete_account(cast(User, user.unwrap()))
+    response.delete_cookie(settings.users_cookie_name)

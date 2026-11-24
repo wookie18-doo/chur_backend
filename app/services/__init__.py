@@ -1,4 +1,4 @@
-"""Business logic for finance_manager.
+"""Business logic for chur.
 
 Services own the business rules (validation, authorization, orchestration)
 and are built on top of ``app.dal`` (database queries) and ``app.libs``

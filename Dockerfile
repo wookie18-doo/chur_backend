@@ -1,10 +1,10 @@
-FROM ghcr.io/astral-sh/uv:0.11.7-python3.13-trixie AS uv
+FROM ghcr.io/astral-sh/uv:0.11.7-python3.14-trixie AS uv
 
 # -----------------------------------
 # STAGE 1: prod stage
 # Only install main dependencies
 # -----------------------------------
-FROM python:3.13-slim-trixie AS prod
+FROM python:3.14-slim-trixie AS prod
 RUN apt-get update && apt-get install -y \
   gcc \
   && rm -rf /var/lib/apt/lists/*
@@ -24,16 +24,15 @@ RUN mkdir -p "$PROMETHEUS_MULTIPROC_DIR"
 
 WORKDIR /app/src
 
-RUN --mount=from=uv,source=/usr/local/bin/uv,target=/bin/uv \
-    --mount=type=cache,target=/root/.cache/uv \
-    --mount=type=bind,source=uv.lock,target=uv.lock \
-    --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
+COPY --from=uv /usr/local/bin/uv /bin/uv
+COPY pyproject.toml uv.lock ./
+
+RUN --mount=type=cache,target=/root/.cache/uv,sharing=locked \
     uv sync --locked --no-install-project --no-dev
 
 COPY . .
 
-RUN --mount=from=uv,source=/usr/local/bin/uv,target=/bin/uv \
-    --mount=type=cache,target=/root/.cache/uv \
+RUN --mount=type=cache,target=/root/.cache/uv,sharing=locked \
     uv sync --locked --no-dev
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
 
@@ -43,6 +42,5 @@ CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
 # -----------------------------------
 FROM prod AS dev
 
-RUN --mount=from=uv,source=/usr/local/bin/uv,target=/bin/uv \
-    --mount=type=cache,target=/root/.cache/uv \
+RUN --mount=type=cache,target=/root/.cache/uv,sharing=locked \
     uv sync --locked --all-groups
