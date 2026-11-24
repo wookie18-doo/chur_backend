@@ -167,3 +167,10 @@ docker compose up -d --wait db redis
 pytest -vv .
 ```
 
+
+## License
+
+Source-available under the
+[PolyForm Noncommercial License 1.0.0](LICENSE). Copyright (c) 2026
+Wookie18 d.o.o. Commercial use requires a separate license from the
+copyright holder.

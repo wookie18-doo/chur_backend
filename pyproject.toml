@@ -3,7 +3,9 @@ name = "chur"
 version = "0.1.0"
 requires-python = ">=3.14,<4.0"
 description = ""
-authors = []
+authors = [{ name = "Wookie18 d.o.o." }]
+license = "PolyForm-Noncommercial-1.0.0"
+license-files = ["LICENSE"]
 maintainers = []
 readme = "README.md"
 dependencies = [
