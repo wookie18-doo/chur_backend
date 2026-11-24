@@ -23,12 +23,12 @@ services:
     # Dockerfile's default CMD (gunicorn workers don't support reload).
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
     environment:
-      FINANCE_MANAGER_DB_HOST: finance_manager-db
-      FINANCE_MANAGER_DB_PORT: 5432
-      FINANCE_MANAGER_DB_USER: finance_manager
-      FINANCE_MANAGER_DB_PASS: finance_manager
-      FINANCE_MANAGER_DB_BASE: finance_manager
-      FINANCE_MANAGER_REDIS_HOST: finance_manager-redis
+      CHUR_DB_HOST: finance_manager-db
+      CHUR_DB_PORT: 5432
+      CHUR_DB_USER: finance_manager
+      CHUR_DB_PASS: finance_manager
+      CHUR_DB_BASE: finance_manager
+      CHUR_REDIS_HOST: finance_manager-redis
     volumes:
       - .:/app/src/
 
