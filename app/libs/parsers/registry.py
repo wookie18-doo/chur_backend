@@ -13,9 +13,11 @@ from typing import Any, ClassVar
 
 from app.libs.parsers.base import BaseParser
 from app.libs.parsers.bunq import BunqStatementParser
+from app.libs.parsers.credo import CredoStatementParser
 from app.libs.parsers.deblock import DeblockStatementParser
 from app.libs.parsers.dukascopy import DukascopyStatementParser
 from app.libs.parsers.market_bill import MarketBillParser
+from app.libs.parsers.nexo import NexoStatementParser
 from app.libs.parsers.revolut import RevolutStatementParser
 from app.libs.parsers.unknown import UnknownParser
 from app.libs.parsers.wise import WiseStatementParser
@@ -31,6 +33,8 @@ class StatementParser:
         "dukascopy": DukascopyStatementParser,
         "market_bill": MarketBillParser,
         "revolut": RevolutStatementParser,
+        "nexo": NexoStatementParser,
+        "credo": CredoStatementParser,
     }
 
     def __init__(self, source: str) -> None:
