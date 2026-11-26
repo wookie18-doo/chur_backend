@@ -13,12 +13,13 @@ from app.dal.income_query import IncomeQuery
 from app.dal.spent_query import SpentQuery
 from app.dal.transfer_query import TransferQuery
 from app.db.sql.models.account import Account, BalanceAdjustment
-from app.db.sql.models.enums import AccountKind
+from app.db.sql.models.enums import AccountKind, Visibility
 from app.db.sql.models.users import User
 from app.services.statement_source_service import (
     MARKET_BILL_CODE,
     StatementSourceService,
 )
+from app.services.visibility_service import VisibilityService
 
 
 class AccountNotOwnedError(Exception):
@@ -74,6 +75,7 @@ class AccountService:
         self.transfers = TransferQuery(session)
         self.adjustments = BalanceAdjustmentQuery(session)
         self.source_service = StatementSourceService(session)
+        self.session = session
 
     async def _resolve_source(self, code: str | None) -> int | None:
         if code is None:
@@ -250,19 +252,26 @@ class AccountService:
         self,
         user: User,
         *,
+        scope: str = "family",
         include_inactive: bool = False,
         parent_account_id: uuid.UUID | None = None,
     ) -> list[Account]:
         """
-        List a user's accounts.
+        List the accounts ``user`` may see.
 
         :param user: user requesting the list.
+        :param scope: ``"me"`` for just ``user``'s own accounts,
+            ``"family"`` for every family member's (falls back to just
+            ``user``'s if they aren't in a family).
         :param include_inactive: whether to include archived accounts.
         :param parent_account_id: restrict to one account's jars/cards.
         :return: matching accounts.
         """
-        accounts = await self.accounts.list_for_user(
-            user.id, include_inactive=include_inactive
+        owner_ids = await VisibilityService(user.id, self.session).visible_owner_ids(
+            scope=scope
+        )
+        accounts = await self.accounts.list_for_users(
+            owner_ids, include_inactive=include_inactive
         )
         if parent_account_id is not None:
             accounts = [a for a in accounts if a.parent_account_id == parent_account_id]
@@ -270,26 +279,19 @@ class AccountService:
 
     async def current_balance(self, user: User, account_id: uuid.UUID) -> Decimal:
         """
-        Compute today's balance of one account, owner-only.
+        Compute today's balance of an account ``user`` may see.
 
         ``opening_balance + incomes - spents + transfers in - transfers out
         + adjustments``, all for that literal account -- never rolled up
         into a parent's total.
 
-        :param user: the account's owner.
+        :param user: the account's owner or a member of their family.
         :param account_id: account to total.
-        :raises AccountNotOwnedError: if the account isn't ``user``'s.
+        :raises AccountNotOwnedError: if ``user`` may not see the account.
         :return: the current balance.
         """
-        account = await self._get_owned(user, account_id)
-        return (
-            (account.opening_balance or Decimal(0))
-            + await self.incomes.sum_for_account(account_id)
-            - await self.spents.sum_for_account(account_id)
-            + await self.transfers.sum_in(account_id)
-            - await self.transfers.sum_out(account_id)
-            + await self.adjustments.sum_for_account(account_id)
-        )
+        account = await self._get_visible(user, account_id)
+        return await self._balance_of(account)
 
     async def set_balance(
         self,
@@ -314,7 +316,8 @@ class AccountService:
         :raises AccountNotOwnedError: if the account isn't ``user``'s.
         :return: the created adjustment.
         """
-        delta = target_balance - await self.current_balance(user, account_id)
+        account = await self._get_owned(user, account_id)
+        delta = target_balance - await self._balance_of(account)
         return await self.adjustments.create(
             user_id=user.id,
             account_id=account_id,
@@ -338,3 +341,23 @@ class AccountService:
         if account.source is None:
             raise AccountHasNoImportSourceError
         return account
+
+    async def _get_visible(self, user: User, account_id: uuid.UUID) -> Account:
+        account = await self.accounts.get(account_id)
+        if account is None:
+            raise AccountNotOwnedError
+        visibility = VisibilityService(user.id, self.session)
+        # Accounts have no visibility column: every one is family-readable.
+        if not await visibility.can_view(account.user_id, Visibility.FAMILY):
+            raise AccountNotOwnedError
+        return account
+
+    async def _balance_of(self, account: Account) -> Decimal:
+        return (
+            (account.opening_balance or Decimal(0))
+            + await self.incomes.sum_for_account(account.id)
+            - await self.spents.sum_for_account(account.id)
+            + await self.transfers.sum_in(account.id)
+            - await self.transfers.sum_out(account.id)
+            + await self.adjustments.sum_for_account(account.id)
+        )

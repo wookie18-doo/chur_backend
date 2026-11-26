@@ -50,14 +50,16 @@ def _bad_request(exc: Exception) -> HTTPException:
 
 @router.get("", response_model=list[AccountRead])
 async def list_accounts(
+    scope: str = Query("family", pattern="^(me|family)$"),
     include_inactive: bool = Query(False),
     parent_account_id: uuid.UUID | None = Query(None),
     user: RequestUser = Depends(require_auth),
     account_service: AccountService = Depends(get_account_service),
 ) -> list[Account]:
     """
-    List the current user's accounts.
+    List the accounts the current user may see.
 
+    :param scope: ``"me"`` or ``"family"`` (the default).
     :param include_inactive: whether to include archived accounts.
     :param parent_account_id: restrict to one account's jars/cards.
     :param user: the authenticated user.
@@ -66,6 +68,7 @@ async def list_accounts(
     """
     return await account_service.list_for_user(
         cast(User, user.unwrap()),
+        scope=scope,
         include_inactive=include_inactive,
         parent_account_id=parent_account_id,
     )
@@ -213,12 +216,12 @@ async def read_balance(
     account_service: AccountService = Depends(get_account_service),
 ) -> BalanceRead:
     """
-    Return the current balance of one of the user's accounts.
+    Return the current balance of the user's or a family member's account.
 
     :param account_id: account to total.
     :param user: the authenticated user.
     :param account_service: account service.
-    :raises HTTPException: 404, if the account isn't the user's.
+    :raises HTTPException: 404, if the user may not see the account.
     :return: the current balance.
     """
     try:
